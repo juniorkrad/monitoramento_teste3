@@ -481,7 +481,7 @@ window.gerarImpressaoStatusFinal = function() {
     `;
 
     let contentHtml = `
-        <div class="avoid-break" style="display: block; margin-bottom: 25px;">
+        <div style="display: block; margin-bottom: 25px;">
             <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                 <thead>
                     <tr>
