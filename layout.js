@@ -955,7 +955,7 @@ function injectRelatorioModal() {
         <div class="search-modal-overlay" id="relatorio-pdf-modal" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal(event)">
             <div class="search-modal" onclick="event.stopPropagation()">
                 <div class="search-modal-header">
-                    <h2><span class="material-symbols-rounded">picture_as_pdf</span> Relatório de Equipamentos</h2>
+                    <h2><span class="material-symbols-rounded">print</span> Central de Relatórios</h2>
                     <button class="search-close-btn" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
                 </div>
                 
@@ -981,9 +981,12 @@ function injectRelatorioModal() {
                     <!-- Seleções aparecerão aqui -->
                 </div>
 
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 10px;">
-                    <button class="search-btn" id="btn-gerar-pdf-final" style="width: 100%; padding: 16px; font-size: 1.1rem; font-weight: bold; background-color: #67079f; gap: 10px; display: none;" onclick="if(window.gerarPDFFinal) window.gerarPDFFinal()">
-                        <span class="material-symbols-rounded">download</span> GERAR PDF
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 10px; display: none; flex-direction: column; gap: 10px;" id="relatorio-action-buttons">
+                    <button class="search-btn" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; background-color: rgba(255, 255, 255, 0.1); color: var(--m3-on-surface); gap: 8px;" onclick="if(window.gerarImpressaoFinal) window.gerarImpressaoFinal()">
+                        <span class="material-symbols-rounded">router</span> GERAR PDF (FABRICANTES)
+                    </button>
+                    <button class="search-btn" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; background-color: #67079f; color: #ffffff; gap: 8px;" onclick="if(window.gerarImpressaoStatusFinal) window.gerarImpressaoStatusFinal()">
+                        <span class="material-symbols-rounded">online_prediction</span> GERAR PDF (STATUS DA REDE)
                     </button>
                 </div>
             </div>

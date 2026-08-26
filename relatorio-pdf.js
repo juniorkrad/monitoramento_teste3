@@ -1,12 +1,10 @@
 // ==============================================================================
-// relatorio-pdf.js - Gerador de Relatório de Equipamentos (Impressão Nativa A4)
-// Identidade Visual (Roxo/Branco) e Agrupamento por Fabricante
-// Atualização: Conversão para window.print() (Solução 100% Estável)
+// relatorio-pdf.js - Gerador de Relatório de Equipamentos e Status da Rede
+// Identidade Visual (Roxo/Branco) - Impressão Nativa A4
 // ==============================================================================
 
 window.RELATORIO_SELECTIONS = [];
 
-// Mapeamento de Fabricantes
 const PDF_EQP_MARCAS = [
     { nome: 'NOKIA', prefixos: 'ALCL' },
     { nome: 'CHINA MOBILE', prefixos: 'NBEL' },
@@ -29,9 +27,7 @@ PDF_EQP_MARCAS.forEach(marca => {
     });
 });
 
-// Helper para gerar as logos (Apenas V-SOL para não quebrar a pílula)
 function getPdfLogoHtml(marcaNome) {
-    // Para funcionar corretamente na janela de impressão, o caminho da imagem deve ser absoluto ou relativo à raiz.
     const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
     
     if (marcaNome === 'MAXPRINT / V-SOL') {
@@ -44,7 +40,6 @@ function getPdfLogoHtml(marcaNome) {
     }
 }
 
-// Helper para a Pílula do fabricante (Uso de Tabela para estabilidade de impressão)
 function getPdfPillHtml(marcaNome, count) {
     return `
         <div class="avoid-break" style="display: inline-block; width: 31%; background-color: #2f0e51; border-radius: 8px; padding: 10px; margin-right: 1.5%; margin-bottom: 12px; box-sizing: border-box; vertical-align: top;">
@@ -62,54 +57,8 @@ function getPdfPillHtml(marcaNome, count) {
     `;
 }
 
-// Injeta o Modal Globalmente
-function injectRelatorioModal() {
-    if (document.getElementById('relatorio-pdf-modal')) return;
-
-    const modalHtml = `
-        <div class="search-modal-overlay" id="relatorio-pdf-modal" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal(event)">
-            <div class="search-modal" onclick="event.stopPropagation()">
-                <div class="search-modal-header">
-                    <h2><span class="material-symbols-rounded">print</span> Relatório de Equipamentos</h2>
-                    <button class="search-close-btn" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
-                </div>
-                
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <div style="display: flex; gap: 10px;">
-                        <select id="relatorio-select-olt" class="filter-select" onchange="if(window.updateRelatorioPlacas) window.updateRelatorioPlacas()">
-                            <option value="">1. Selecione a OLT</option>
-                        </select>
-                        <select id="relatorio-select-placa" class="filter-select" onchange="if(window.updateRelatorioPortas) window.updateRelatorioPortas()" disabled>
-                            <option value="">2. Placa</option>
-                        </select>
-                        <select id="relatorio-select-porta" class="filter-select" disabled>
-                            <option value="">3. Porta</option>
-                        </select>
-                    </div>
-                    
-                    <button class="search-btn" style="width: 100%; padding: 12px; font-weight: bold; gap: 8px;" onclick="if(window.addRelatorioSelection) window.addRelatorioSelection()">
-                        <span class="material-symbols-rounded">add_circle</span> ADICIONAR PORTA AO RELATÓRIO
-                    </button>
-                </div>
-
-                <div id="relatorio-selections-area" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; padding-right: 5px;" class="custom-scroll">
-                    <!-- Seleções aparecerão aqui -->
-                </div>
-
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 10px;">
-                    <button class="search-btn" id="btn-gerar-pdf-final" style="width: 100%; padding: 16px; font-size: 1.1rem; font-weight: bold; background-color: #67079f; gap: 10px; display: none;" onclick="if(window.gerarImpressaoFinal) window.gerarImpressaoFinal()">
-                        <span class="material-symbols-rounded">print</span> IMPRIMIR / SALVAR PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-}
-
-// Abre o Modal e carrega as OLTs
 window.openRelatorioModal = function() {
-    injectRelatorioModal();
+    if (typeof injectRelatorioModal === 'function') injectRelatorioModal();
     window.RELATORIO_SELECTIONS = [];
     window.renderRelatorioSelections();
     
@@ -134,7 +83,6 @@ window.closeRelatorioModal = function(event) {
     if (modal) modal.classList.remove('active');
 };
 
-// Atualiza o dropdown de Placas
 window.updateRelatorioPlacas = function() {
     const oltId = document.getElementById('relatorio-select-olt').value;
     const placaSelect = document.getElementById('relatorio-select-placa');
@@ -158,7 +106,6 @@ window.updateRelatorioPlacas = function() {
     }
 };
 
-// Atualiza o dropdown de Portas
 window.updateRelatorioPortas = function() {
     const oltId = document.getElementById('relatorio-select-olt').value;
     const placaId = document.getElementById('relatorio-select-placa').value;
@@ -191,7 +138,6 @@ window.updateRelatorioPortas = function() {
     portaSelect.disabled = false;
 };
 
-// Adiciona a seleção à lista temporária
 window.addRelatorioSelection = function() {
     const oltId = document.getElementById('relatorio-select-olt').value;
     const placaId = document.getElementById('relatorio-select-placa').value;
@@ -232,15 +178,14 @@ window.addRelatorioSelection = function() {
     document.getElementById('relatorio-select-porta').disabled = true;
 };
 
-// Renderiza a lista de itens selecionados no Modal
 window.renderRelatorioSelections = function() {
     const area = document.getElementById('relatorio-selections-area');
-    const btnGerar = document.getElementById('btn-gerar-pdf-final');
+    const actionButtons = document.getElementById('relatorio-action-buttons');
     area.innerHTML = '';
 
     if (window.RELATORIO_SELECTIONS.length === 0) {
         area.innerHTML = `<div style="text-align:center; color: var(--m3-on-surface-variant); padding: 10px; font-size: 0.9rem;">Nenhuma porta adicionada ainda.</div>`;
-        btnGerar.style.display = 'none';
+        if (actionButtons) actionButtons.style.display = 'none';
         return;
     }
 
@@ -258,7 +203,7 @@ window.renderRelatorioSelections = function() {
         `;
     });
 
-    btnGerar.style.display = 'flex';
+    if (actionButtons) actionButtons.style.display = 'flex';
 };
 
 window.removeRelatorioSelection = function(index) {
@@ -266,7 +211,6 @@ window.removeRelatorioSelection = function(index) {
     window.renderRelatorioSelections();
 };
 
-// Gera a Impressão Nativa
 window.gerarImpressaoFinal = function() {
     const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
 
@@ -388,7 +332,6 @@ window.gerarImpressaoFinal = function() {
         </div>
     `;
 
-    // Abre a janela para impressão
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
         alert("O navegador bloqueou a abertura da janela. Permita pop-ups para gerar o relatório.");
@@ -435,6 +378,174 @@ window.gerarImpressaoFinal = function() {
                 ${contentHtml}
                 ${summaryHtml}
                 ${footnoteHtml}
+            </div>
+            <script>
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    window.closeRelatorioModal();
+};
+
+window.gerarImpressaoStatusFinal = function() {
+    const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+
+    const headerHtml = `
+        <div style="display: block; width: 100%; text-align: center; border-bottom: 3px solid #67079f; padding-bottom: 15px; margin-bottom: 25px;">
+            <img src="${baseUrl}imagens/banner_cor.png" style="max-width: 80%; max-height: 120px; object-fit: contain; margin-top: 5px;" onerror="this.style.display='none'">
+            <h1 style="color: #67079f; margin: 10px 0 5px 0; font-size: 24px; text-transform: uppercase;">Relatório de Status da Rede</h1>
+            <p style="color: #49454f; margin: 0; font-family: 'Roboto Mono', monospace; font-size: 12px;">Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+        </div>
+    `;
+
+    let contentHtml = '';
+
+    const agrupadoPorOlt = {};
+    window.RELATORIO_SELECTIONS.forEach(sel => {
+        if (!agrupadoPorOlt[sel.olt]) agrupadoPorOlt[sel.olt] = [];
+        agrupadoPorOlt[sel.olt].push(sel);
+    });
+
+    let tableRowsHtml = '';
+
+    for (const oltId of Object.keys(agrupadoPorOlt)) {
+        const itens = agrupadoPorOlt[oltId];
+        const rowsData = window.DATA_STORE.olts[oltId].slice(1);
+        const localidadesData = window.DATA_STORE.localidades || [];
+
+        for (const item of itens) {
+            let online = 0;
+            let offline = 0;
+
+            rowsData.forEach(col => {
+                if (col.length === 0) return;
+                
+                const portInfo = DataMapper.extractPort(col[0], item.type);
+                if (!portInfo || String(portInfo.placa) !== String(item.placa) || String(portInfo.porta) !== String(item.porta)) return;
+
+                const isOnline = DataMapper.isOnline(col[item.type === 'nokia' ? 4 : 2], item.type);
+                if (isOnline) online++; else offline++;
+            });
+
+            const total = online + offline;
+            let energyOff = 0;
+
+            if (window.ENERGY_DATA_STORE && window.ENERGY_DATA_STORE.olts[oltId] && window.ENERGY_DATA_STORE.olts[oltId].ports[item.placa] && window.ENERGY_DATA_STORE.olts[oltId].ports[item.placa][item.porta]) {
+                energyOff = window.ENERGY_DATA_STORE.olts[oltId].ports[item.placa][item.porta].powerOff || 0;
+            }
+
+            let bairro = DataMapper.getBairroInfo(localidadesData, oltId, item.placa, item.porta, item.type) || 'N/A';
+
+            const percOffline = total > 0 ? (offline / total) : 0;
+            let statusText = 'Normal';
+            let pillClass = 'pill-normal';
+
+            if (total >= 5) {
+                if (percOffline === 1) {
+                    statusText = 'Crítico';
+                    pillClass = 'pill-critical';
+                } else if (percOffline >= 0.5 || offline >= 32) {
+                    statusText = 'Problema';
+                    pillClass = 'pill-danger';
+                } else if (offline >= 16) {
+                    statusText = 'Atenção';
+                    pillClass = 'pill-warning';
+                }
+            } else if (total === 0) {
+                statusText = 'Sem Clientes';
+                pillClass = 'pill-empty';
+            }
+
+            if (energyOff > 0 && percOffline < 1) {
+                if (energyOff >= total * 0.5 || energyOff >= 10) {
+                    statusText = 'Falha Elétrica';
+                    pillClass = 'pill-danger';
+                } else if (energyOff >= 5) {
+                    if (statusText === 'Normal') {
+                        statusText = 'Atenção';
+                        pillClass = 'pill-warning';
+                    }
+                }
+            }
+
+            tableRowsHtml += `
+                <tr>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: left; font-weight: bold; color: #67079f;">${oltId}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: center; font-family: 'Roboto Mono', monospace; font-weight: bold; color: #1c1b1f;">${item.placa}/${String(item.porta).padStart(2, '0')}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: left; font-family: 'Roboto Mono', monospace; font-weight: bold; color: #374151;">${item.circuito}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: left; color: #49454f; font-size: 11px;">${bairro}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: center; font-weight: bold; color: #1c1b1f;">${total}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: center; font-weight: bold; color: #2e7d32; background-color: rgba(74, 222, 128, 0.1);">${online}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: center; font-weight: bold; color: #d32f2f; background-color: rgba(248, 113, 113, 0.1);">${offline}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: center; font-weight: bold; color: #e65100; background-color: rgba(251, 191, 36, 0.1);">${energyOff}</td>
+                    <td style="border: 1px solid #e0e0e0; padding: 10px; text-align: center;">
+                        <span class="pill ${pillClass}">${statusText}</span>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    contentHtml = `
+        <div class="avoid-break" style="display: block; margin-bottom: 25px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                    <tr>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #374151; text-align: left;">OLT</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #374151; text-align: center;">PLACA/PORTA</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #374151; text-align: left;">CIRCUITO</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #374151; text-align: left;">BAIRRO</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #374151; text-align: center;">TOTAL</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #2e7d32; text-align: center;">ONLINE</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #d32f2f; text-align: center;">OFFLINE</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #d97706; text-align: center;">ENERGIA</th>
+                        <th style="background-color: #e9ecef; border: 1px solid #d1d5db; padding: 10px; color: #374151; text-align: center;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRowsHtml}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("O navegador bloqueou a abertura da janela. Permita pop-ups para gerar o relatório.");
+        return;
+    }
+
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatorio_Status_Rede</title>
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+            <style>
+                @page { size: A4 portrait; margin: 10mm; }
+                body { font-family: 'Montserrat', sans-serif; background-color: #ffffff; color: #1c1b1f; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                .report-container { border: 3px solid #67079f; border-radius: 12px; padding: 25px 35px; box-sizing: border-box; min-height: 95vh; }
+                .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+                .pill { display: inline-block; padding: 5px 12px; border-radius: 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+                .pill-normal { background: rgba(74, 222, 128, 0.15); color: #2e7d32; border: 1px solid rgba(74, 222, 128, 0.4); }
+                .pill-warning { background: rgba(251, 191, 36, 0.15); color: #d97706; border: 1px solid rgba(251, 191, 36, 0.4); }
+                .pill-danger { background: rgba(248, 113, 113, 0.15); color: #d32f2f; border: 1px solid rgba(248, 113, 113, 0.4); }
+                .pill-critical { background: #000000; color: #ff3333; border: 1px solid #ff3333; }
+                .pill-empty { background: #f3f4f6; color: #9ca3af; border: 1px solid #d1d5db; }
+            </style>
+        </head>
+        <body>
+            <div class="report-container">
+                ${headerHtml}
+                ${contentHtml}
             </div>
             <script>
                 window.onload = function() {
