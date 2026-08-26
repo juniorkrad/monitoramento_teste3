@@ -5,6 +5,7 @@
 
 window.RELATORIO_SELECTIONS = [];
 
+// Mapeamento de Fabricantes
 const PDF_EQP_MARCAS = [
     { nome: 'NOKIA', prefixos: 'ALCL' },
     { nome: 'CHINA MOBILE', prefixos: 'NBEL' },
@@ -27,6 +28,7 @@ PDF_EQP_MARCAS.forEach(marca => {
     });
 });
 
+// Helper para gerar as logos (Apenas V-SOL para não quebrar a pílula)
 function getPdfLogoHtml(marcaNome) {
     const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
     
@@ -40,6 +42,7 @@ function getPdfLogoHtml(marcaNome) {
     }
 }
 
+// Helper para a Pílula do fabricante
 function getPdfPillHtml(marcaNome, count) {
     return `
         <div class="avoid-break" style="display: inline-block; width: 31%; background-color: #2f0e51; border-radius: 8px; padding: 10px; margin-right: 1.5%; margin-bottom: 12px; box-sizing: border-box; vertical-align: top;">
@@ -57,6 +60,55 @@ function getPdfPillHtml(marcaNome, count) {
     `;
 }
 
+// Injeta o Modal Globalmente
+function injectRelatorioModal() {
+    if (document.getElementById('relatorio-pdf-modal')) return;
+
+    const modalHtml = `
+        <div class="search-modal-overlay" id="relatorio-pdf-modal" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal(event)">
+            <div class="search-modal" onclick="event.stopPropagation()">
+                <div class="search-modal-header">
+                    <h2><span class="material-symbols-rounded">picture_as_pdf</span> Central de Relatórios</h2>
+                    <button class="search-close-btn" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="display: flex; gap: 10px;">
+                        <select id="relatorio-select-olt" class="filter-select" onchange="if(window.updateRelatorioPlacas) window.updateRelatorioPlacas()">
+                            <option value="">1. Selecione a OLT</option>
+                        </select>
+                        <select id="relatorio-select-placa" class="filter-select" onchange="if(window.updateRelatorioPortas) window.updateRelatorioPortas()" disabled>
+                            <option value="">2. Placa</option>
+                        </select>
+                        <select id="relatorio-select-porta" class="filter-select" disabled>
+                            <option value="">3. Porta</option>
+                        </select>
+                    </div>
+                    
+                    <button class="search-btn" style="width: 100%; padding: 12px; font-weight: bold; gap: 8px;" onclick="if(window.addRelatorioSelection) window.addRelatorioSelection()">
+                        <span class="material-symbols-rounded">add_circle</span> ADICIONAR PORTA AO RELATÓRIO
+                    </button>
+                </div>
+
+                <div id="relatorio-selections-area" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; padding-right: 5px;" class="custom-scroll">
+                    <!-- Seleções aparecerão aqui -->
+                </div>
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 10px; display: none; flex-direction: column; gap: 10px;" id="relatorio-action-buttons">
+                    <button class="search-btn" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; background-color: rgba(255, 255, 255, 0.1); color: var(--m3-on-surface); gap: 8px;" onclick="if(window.gerarImpressaoFinal) window.gerarImpressaoFinal()">
+                        <span class="material-symbols-rounded">router</span> GERAR PDF (FABRICANTES)
+                    </button>
+                    <button class="search-btn" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; background-color: #67079f; color: #ffffff; gap: 8px;" onclick="if(window.gerarImpressaoStatusFinal) window.gerarImpressaoStatusFinal()">
+                        <span class="material-symbols-rounded">online_prediction</span> GERAR PDF (STATUS DA REDE)
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// Abre o Modal e carrega as OLTs
 window.openRelatorioModal = function() {
     if (typeof injectRelatorioModal === 'function') injectRelatorioModal();
     window.RELATORIO_SELECTIONS = [];
@@ -83,6 +135,7 @@ window.closeRelatorioModal = function(event) {
     if (modal) modal.classList.remove('active');
 };
 
+// Atualiza o dropdown de Placas
 window.updateRelatorioPlacas = function() {
     const oltId = document.getElementById('relatorio-select-olt').value;
     const placaSelect = document.getElementById('relatorio-select-placa');
@@ -106,6 +159,7 @@ window.updateRelatorioPlacas = function() {
     }
 };
 
+// Atualiza o dropdown de Portas
 window.updateRelatorioPortas = function() {
     const oltId = document.getElementById('relatorio-select-olt').value;
     const placaId = document.getElementById('relatorio-select-placa').value;
@@ -138,6 +192,7 @@ window.updateRelatorioPortas = function() {
     portaSelect.disabled = false;
 };
 
+// Adiciona a seleção à lista temporária
 window.addRelatorioSelection = function() {
     const oltId = document.getElementById('relatorio-select-olt').value;
     const placaId = document.getElementById('relatorio-select-placa').value;
@@ -178,6 +233,7 @@ window.addRelatorioSelection = function() {
     document.getElementById('relatorio-select-porta').disabled = true;
 };
 
+// Renderiza a lista de itens selecionados no Modal
 window.renderRelatorioSelections = function() {
     const area = document.getElementById('relatorio-selections-area');
     const actionButtons = document.getElementById('relatorio-action-buttons');
@@ -211,6 +267,7 @@ window.removeRelatorioSelection = function(index) {
     window.renderRelatorioSelections();
 };
 
+// Gera a Impressão Nativa - Fabricantes
 window.gerarImpressaoFinal = function() {
     const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
 
@@ -394,6 +451,7 @@ window.gerarImpressaoFinal = function() {
     window.closeRelatorioModal();
 };
 
+// Gera a Impressão Nativa - Status da Rede
 window.gerarImpressaoStatusFinal = function() {
     const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
 
