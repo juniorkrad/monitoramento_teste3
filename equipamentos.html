@@ -1,0 +1,92 @@
+<!-- equipamentos.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipamentos - Monitoramento</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="equipamentos.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <div id="header-placeholder"></div>
+
+        <main class="main-content" style="flex-direction: column;">
+            <div id="equipamentos-grid" class="grid-container"></div>
+        </main>
+    </div>
+
+    <!-- MODAL DE EQUIPAMENTOS DESCONHECIDOS -->
+    <div id="modal-desconhecidos" class="modal-overlay" style="display: none;" onclick="closeUnknownModal(event)">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="color: #f87171;">help_center</span>
+                    Equipamentos Desconhecidos (Mapear Prefixo)
+                </h3>
+                <button class="close-modal" onclick="closeUnknownModal()" title="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+                    <table id="tabela-desconhecidos" style="width: 100%; border-collapse: collapse; text-align: center;">
+                        <thead>
+                            <tr class="table-header-row">
+                                <th style="padding: 12px; border-bottom: 1px solid var(--m3-outline);">OLT</th>
+                                <th style="padding: 12px; border-bottom: 1px solid var(--m3-outline);">Placa/Porta</th>
+                                <th style="padding: 12px; border-bottom: 1px solid var(--m3-outline);">Serial Completo</th>
+                                <th style="padding: 12px; border-bottom: 1px solid var(--m3-outline);">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DISTRIBUIÇÃO MULTINÍVEL -->
+    <div id="modal-distribuicao" class="modal-overlay" style="display: none;" onclick="closeDistribuicaoModal(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="color: #60a5fa;">router</span>
+                    Distribuição: <span id="distribuicao-marca-titulo"></span>
+                </h3>
+                <button class="close-modal" onclick="closeDistribuicaoModal()" title="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="custom-scroll" id="distribuicao-lista-container" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                    <!-- O conteúdo multinível será injetado aqui pelo equipamentos-engine.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="data-mapper.js"></script>
+    <script src="data-store.js"></script>
+    <script src="layout.js"></script>
+    <script src="notifications.js"></script>
+    <script src="equipamentos-engine.js"></script>
+
+    <style>
+        .custom-scroll::-webkit-scrollbar, .table-container::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track, .table-container::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb, .table-container::-webkit-scrollbar-thumb { background: var(--m3-outline); border-radius: 4px; }
+        
+        #tabela-desconhecidos td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--m3-on-surface);
+        }
+    </style>
+</body>
+</html>

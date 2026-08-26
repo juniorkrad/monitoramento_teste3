@@ -1,0 +1,114 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial - Monitoramento</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="notifications.css"> 
+</head>
+<body>
+
+    <div class="page-container">
+        <div id="header-placeholder"></div>
+
+        <main class="main-content" style="flex-direction: column;">
+            <div id="overview-grid" class="home-wallboard-grid">
+                
+                <div class="global-card" id="home-card-rede">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-rounded">lan</span> Monitoramento Geral da Rede</h3>
+                    </div>
+                    <div class="widescreen-body" id="target-rede-widescreen">
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--m3-on-surface-variant); padding: 20px;">Aguardando dados de rede...</div>
+                    </div>
+                </div>
+
+                <div class="global-card" id="home-card-energia">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-rounded">bolt</span> Monitoramento de Energia</h3>
+                    </div>
+                    <div class="widescreen-body" id="target-energia-widescreen">
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--m3-on-surface-variant); padding: 20px;">Aguardando dados de energia...</div>
+                    </div>
+                </div>
+
+                <div class="global-card" id="home-card-potencia">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-rounded">insights</span> Monitoramento de Potência</h3>
+                    </div>
+                    <div class="widescreen-body" id="target-potencia-widescreen">
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--m3-on-surface-variant); padding: 20px;">Aguardando dados ópticos...</div>
+                    </div>
+                </div>
+
+                <div class="global-card" id="home-card-temperatura">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-rounded">device_thermostat</span> Monitoramento Térmico</h3>
+                    </div>
+                    <div class="widescreen-body" id="target-temperatura-widescreen">
+                        <div style="grid-column: 1 / -1; text-align: center; color: var(--m3-on-surface-variant); padding: 20px;">Aguardando dados térmicos...</div>
+                    </div>
+                </div>
+
+                <div class="global-card" id="card-fabricantes">
+                    <div class="card-header">
+                        <h3><span class="material-symbols-rounded">router</span> Monitoramento de Equipamentos</h3>
+                    </div>
+                    <div class="card-body" id="global-eqp-content" style="flex-direction: column; padding: 16px 20px; width: 100%; box-sizing: border-box;">
+                        <div class="loading-spinner-small" id="global-eqp-loading" style="margin: 20px auto; display: block;"></div>
+                        <div class="eqp-badge-grid" id="eqp-badge-container" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="mobile-fast-modal" class="modal-overlay" style="display: none;" onclick="closeFastModal(event)">
+        <div class="modal-content fast-modal-box">
+            <button class="close-btn" onclick="closeFastModal()">&times;</button>
+            <div id="fast-modal-content"></div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        Chart.defaults.font.family = "'Roboto Mono', monospace";
+        Chart.defaults.color = "#cac4d0";
+    </script>
+
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="data-mapper.js"></script>
+    <script src="data-store.js"></script>
+    <script src="layout.js"></script>
+    <script src="notifications.js"></script>
+    
+    <script src="olt-engine.js"></script>
+    <script src="energia-engine.js"></script>
+    <script src="equipamentos-engine.js"></script>
+    <script src="potencia-engine.js"></script>
+    <script src="temperatura-engine.js"></script>
+    <script src="home-engine.js"></script>
+    <script src="relatorio-pdf.js"></script>
+    <script src="boletim-gerencial.js"></script>
+
+    <script>
+        function closeFastModal(event) {
+            if (event && event.target.id !== 'mobile-fast-modal' && !event.target.classList.contains('close-btn')) return;
+            const modal = document.getElementById('mobile-fast-modal');
+            if (modal) modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

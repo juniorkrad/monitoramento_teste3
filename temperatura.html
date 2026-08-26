@@ -1,0 +1,75 @@
+<!-- temperatura.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento de Temperatura - NOC</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="temperatura.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <div id="header-placeholder"></div>
+
+        <main class="main-content" style="flex-direction: column;">
+            <div id="temperatura-grid" class="grid-container"></div>
+        </main>
+    </div>
+
+    <div id="super-modal" class="modal-overlay" onclick="closeSuperModal(event)">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="super-modal-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded">dns</span> Detalhes Térmicos
+                </h3>
+                <button class="close-modal" onclick="closeSuperModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                
+                <div id="temperatura-view-slots">
+                    <div id="temperatura-slots-list" class="placas-grid"></div>
+                </div>
+
+                <div id="temperatura-view-detalhes" style="display: none;">
+                    <button class="btn-voltar-placas" style="margin-bottom: 15px;" onclick="backToTemperaturaSlots()">
+                        <span class="material-symbols-rounded">arrow_back</span> Voltar para Slots
+                    </button>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th>SENSOR</th>
+                                    <th>TEMP ATUAL</th>
+                                    <th>LIMITES (ALTA / CRÍTICO)</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="temperatura-detalhes-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="layout.js"></script>
+    <script src="data-store.js"></script>
+    <script src="notifications.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="temperatura-engine.js"></script>
+    <script src="relatorio-pdf.js"></script>
+    <script src="boletim-gerencial.js"></script>
+</body>
+</html>

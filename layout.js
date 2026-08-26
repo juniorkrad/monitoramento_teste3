@@ -1,0 +1,1061 @@
+// ==============================================================================
+// layout.js - Construtor de Layout e Menu Inteligente (Com Busca e Emergência Autenticada)
+// Atualização: Injeção automática de Fontes, PWA, Favicon, GSI, Service Worker e Busca de Circuito
+// ==============================================================================
+
+(function setupGlobalHead() {
+    // 1. Injeção de Fontes de Ícones (Material Symbols)
+    const iconFontUrl = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200';
+    if (!document.querySelector(`link[href="${iconFontUrl}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = iconFontUrl;
+        document.head.appendChild(link);
+    }
+
+    // 2. Injeção do Favicon Global
+    if (!document.querySelector('link[rel="icon"]')) {
+        const favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.type = 'image/png';
+        favicon.href = 'favicon.png';
+        document.head.appendChild(favicon);
+    }
+
+    // 3. Injeção das Google Fonts (Montserrat e Roboto Mono)
+    if (!document.querySelector('link[href*="Montserrat"]')) {
+        const preconnect1 = document.createElement('link');
+        preconnect1.rel = 'preconnect';
+        preconnect1.href = 'https://fonts.googleapis.com';
+        document.head.appendChild(preconnect1);
+
+        const preconnect2 = document.createElement('link');
+        preconnect2.rel = 'preconnect';
+        preconnect2.href = 'https://fonts.gstatic.com';
+        preconnect2.crossOrigin = 'anonymous';
+        document.head.appendChild(preconnect2);
+
+        const fontLink = document.createElement('link');
+        fontLink.rel = 'stylesheet';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap';
+        document.head.appendChild(fontLink);
+    }
+
+    // 4. Injeção de PWA Tags (Manifest e Theme Color)
+    if (!document.querySelector('link[rel="manifest"]')) {
+        const manifest = document.createElement('link');
+        manifest.rel = 'manifest';
+        manifest.href = 'manifest.json';
+        document.head.appendChild(manifest);
+    }
+    if (!document.querySelector('meta[name="theme-color"]')) {
+        const themeColor = document.createElement('meta');
+        themeColor.name = 'theme-color';
+        themeColor.content = '#67079f';
+        document.head.appendChild(themeColor);
+    }
+
+    // 5. Injeção do Script do Google Sign-In (GSI)
+    if (!document.querySelector('script[src*="accounts.google.com/gsi/client"]')) {
+        const gsiScript = document.createElement('script');
+        gsiScript.src = 'https://accounts.google.com/gsi/client';
+        gsiScript.async = true;
+        gsiScript.defer = true;
+        document.head.appendChild(gsiScript);
+    }
+})();
+
+function loadHeader(config) {
+    if (config.title) {
+        document.title = config.exactTitle ? config.title : `${config.title} | Monitoramento`;
+    }
+
+    const headerPlaceholder = document.getElementById('header-placeholder');
+    if (!headerPlaceholder) return;
+
+    const path = window.location.pathname;
+    const currentPage = path.split('/').pop() || 'index.html';
+
+    let navHtml = `
+        <button class="icon-btn" onclick="toggleSidebar()" title="Abrir Menu" style="border-radius: 8px; width: auto; padding: 8px 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: var(--m3-on-surface); transition: background-color 0.2s, box-shadow 0.2s;">
+            <span class="material-symbols-rounded">menu</span>
+        </button>
+    `;
+    
+    loadSidebar(currentPage);
+    injectSearchModal(); 
+    injectCircuitSearchModal();
+    injectEmergencyModal(); 
+    injectRelatorioModal();
+    injectBoletimModal();
+
+    headerPlaceholder.innerHTML = `
+        <header class="header">
+            <div class="logo-title-group">
+                <a href="index.html" title="Voltar para a Home" style="display: flex; align-items: center; text-decoration: none;">
+                    <img src="banner2.png" alt="Logo" onerror="this.style.display='none'">
+                </a>
+                <h1>${config.title}</h1>
+            </div>
+            <nav class="header-nav">
+                <div id="update-timestamp" class="timestamp-badge">
+                    <span class="material-symbols-rounded">hourglass_empty</span> Aguardando...
+                </div>
+                ${navHtml}
+            </nav>
+        </header>
+    `;
+}
+
+function loadSidebar(currentPage) {
+    let sidebarContainer = document.getElementById('sidebar-container');
+    if (!sidebarContainer) {
+        sidebarContainer = document.createElement('div');
+        sidebarContainer.id = 'sidebar-container';
+        document.body.prepend(sidebarContainer);
+    }
+
+    sidebarContainer.innerHTML = `
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <div class="sidebar" id="main-sidebar">
+            <div class="sidebar-header">
+                <h3>NAVEGAÇÃO</h3>
+                <button class="close-btn" onclick="toggleSidebar()" style="background: none; border: none; color: var(--m3-on-surface-variant); cursor: pointer; padding: 0;">
+                    <span class="material-symbols-rounded" style="font-size: 28px;">close</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="index.html" class="sidebar-link home-highlight" style="justify-content: flex-start; text-align: left; padding-left: 20px;">
+                    <span class="material-symbols-rounded" style="font-size: 28px; margin-right: 12px;">home</span>
+                    HOME
+                </a>
+
+                <a href="dashboard360.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">dashboard</span>
+                    DASHBOARD 360
+                </a>
+
+                <a href="pop.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">domain</span>
+                    POPS
+                </a>
+
+                <!-- BLOCO TEMPORARIAMENTE OCULTO (TESTE DASHBOARD 360)
+                <a href="olt.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">dns</span>
+                    STATUS OLTS
+                </a>
+                
+                <a href="energia.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">bolt</span>
+                    ENERGIA
+                </a>
+
+                <a href="potencia.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">sensors</span>
+                    POTÊNCIA
+                </a>
+
+                <a href="temperatura.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">device_thermostat</span>
+                    TEMPERATURA
+                </a>
+                FIM BLOCO OCULTO -->
+
+                <a href="equipamentos.html" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px;">router</span>
+                    EQUIPAMENTOS
+                </a>
+
+                <div class="sidebar-divider" style="margin: 15px 0;"></div>
+                
+                <a href="#" onclick="openSearchModal(); return false;" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left; background-color: var(--m3-surface-container-highest);">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px; color: var(--m3-primary);">manage_search</span>
+                    BUSCAR CLIENTE
+                </a>
+
+                <a href="#" onclick="if(window.openCircuitSearchModal) window.openCircuitSearchModal(); return false;" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left; background-color: var(--m3-surface-container-highest);">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px; color: var(--m3-primary);">network_node</span>
+                    BUSCAR CIRCUITO
+                </a>
+
+                <a href="#" onclick="if(window.openBoletimModal) window.openBoletimModal(); return false;" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left; background-color: var(--m3-surface-container-highest);">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px; color: var(--m3-primary);">insert_chart</span>
+                    GERAR BOLETIM
+                </a>
+
+                <a href="#" onclick="if(window.openRelatorioModal) window.openRelatorioModal(); return false;" class="sidebar-link home-highlight" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left; background-color: var(--m3-surface-container-highest);">
+                    <span class="material-symbols-rounded" style="font-size: 24px; margin-right: 12px; color: var(--m3-primary);">picture_as_pdf</span>
+                    GERAR RELATÓRIO
+                </a>
+
+                <a href="#" onclick="checkAuthAndOpenEmergency(); return false;" class="sidebar-link home-highlight bg-danger-highlight text-danger" style="margin-top: 5px; font-size: 1rem; padding: 12px 12px 12px 20px; justify-content: flex-start; text-align: left;">
+                    <span class="material-symbols-rounded text-danger" style="font-size: 24px; margin-right: 12px;">warning</span>
+                    COLETA DE EMERGÊNCIA
+                </a>
+            </nav>
+        </div>
+    `;
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('main-sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+}
+
+function loadFooter() {
+    const footerPlaceholder = document.getElementById('footer-placeholder');
+    if (!footerPlaceholder) return;
+    
+    const currentYear = new Date().getFullYear();
+    footerPlaceholder.innerHTML = `
+        <footer class="footer">
+            <div style="display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span>© ${currentYear} Painel de Monitoramento | Desenvolvido por</span>
+                <span class="material-symbols-rounded" style="font-size: 16px; font-variation-settings: 'FILL' 1;">person</span> @juniorkrad 
+                <span>+</span>
+                <span class="material-symbols-rounded" style="font-size: 16px; font-variation-settings: 'FILL' 1;">smart_toy</span> Gemini
+            </div>
+            <p style="font-size: 0.75rem; margin-top: 6px; opacity: 0.7; font-weight: 400; margin-bottom: 0;">
+                Todos os direitos reservados. Projeto registrado. Proibida a reprodução não autorizada.
+            </p>
+        </footer>
+    `;
+}
+
+// ==============================================================================
+// SISTEMA DE BOLETIM GERENCIAL (MODAL)
+// ==============================================================================
+
+function injectBoletimModal() {
+    if (document.getElementById('boletim-gerencial-modal')) return;
+
+    let popOptions = '<option value="">Selecione o POP</option>';
+    if (typeof POP_MAP !== 'undefined') {
+        const uniquePops = [...new Set(Object.values(POP_MAP))].sort();
+        uniquePops.forEach(pop => {
+            popOptions += `<option value="${pop}">${pop}</option>`;
+        });
+    }
+
+    const modalHtml = `
+        <div class="search-modal-overlay" id="boletim-gerencial-modal" onclick="if(window.closeBoletimModal) window.closeBoletimModal(event)">
+            <div class="search-modal" onclick="event.stopPropagation()">
+                <div class="search-modal-header">
+                    <h2><span class="material-symbols-rounded">insert_chart</span> Gerar Boletim Gerencial</h2>
+                    <button class="search-close-btn" onclick="if(window.closeBoletimModal) window.closeBoletimModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 10px;">
+                    
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 16px;">
+                        <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--m3-primary); display: flex; align-items: center; gap: 8px;"><span class="material-symbols-rounded">domain</span> Boletim por POP</h3>
+                        <p style="font-size: 0.9rem; color: var(--m3-on-surface-variant); margin-bottom: 15px;">Gera um relatório detalhado do status de um POP específico, listando suas OLTs.</p>
+                        <select id="boletim-pop-select" class="filter-select" style="width: 100%; margin-bottom: 15px;">
+                            ${popOptions}
+                        </select>
+                        <button class="search-btn" style="width: 100%; padding: 12px; font-weight: bold; gap: 8px;" onclick="if(window.gerarBoletimPop) window.gerarBoletimPop(event)">
+                            <span class="material-symbols-rounded">download</span> GERAR BOLETIM DO POP
+                        </button>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 16px;">
+                        <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--m3-primary); display: flex; align-items: center; gap: 8px;"><span class="material-symbols-rounded">public</span> Boletim Geral da Rede</h3>
+                        <p style="font-size: 0.9rem; color: var(--m3-on-surface-variant); margin-bottom: 15px;">Gera um relatório consolidado com a visão macro de todos os POPs e da rede como um todo.</p>
+                        <button class="search-btn" style="width: 100%; padding: 12px; font-weight: bold; gap: 8px;" onclick="if(window.gerarBoletimGeral) window.gerarBoletimGeral(event)">
+                            <span class="material-symbols-rounded">download</span> GERAR BOLETIM GERAL
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+window.openBoletimModal = function() {
+    injectBoletimModal();
+    document.getElementById('boletim-gerencial-modal').classList.add('active');
+    const sidebar = document.getElementById('main-sidebar');
+    if (sidebar && sidebar.classList.contains('active')) {
+        toggleSidebar();
+    }
+}
+
+window.closeBoletimModal = function(event) {
+    if (event && event.target.id !== 'boletim-gerencial-modal' && event.type === 'click') return;
+    const modal = document.getElementById('boletim-gerencial-modal');
+    if(modal) modal.classList.remove('active');
+}
+
+// ==============================================================================
+// SISTEMA DE BUSCA REVERSA DE CIRCUITO (MODAL E LÓGICA)
+// ==============================================================================
+
+function injectCircuitSearchModal() {
+    if (document.getElementById('search-circuit-modal')) return;
+
+    let oltOptions = '<option value="">Selecione a OLT...</option>';
+    if (typeof GLOBAL_MASTER_OLT_LIST !== 'undefined') {
+        GLOBAL_MASTER_OLT_LIST.forEach(olt => {
+            oltOptions += `<option value="${olt.id}">${olt.id}</option>`;
+        });
+    }
+
+    const modalHtml = `
+        <div class="search-modal-overlay" id="search-circuit-modal" onclick="closeCircuitSearchModal(event)">
+            <div class="search-modal" onclick="event.stopPropagation()">
+                <div class="search-modal-header">
+                    <h2><span class="material-symbols-rounded">network_node</span> Busca Reversa de Circuito</h2>
+                    <button class="search-close-btn" onclick="closeCircuitSearchModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                    <select id="circuit-olt-select" class="filter-select" style="width: 100%; padding: 14px 16px; border-radius: 12px; background-color: var(--m3-surface-container-highest); border: 1px solid var(--m3-outline); color: var(--m3-on-surface); font-size: 1.1rem; outline: none; font-family: 'Montserrat', sans-serif;">
+                        ${oltOptions}
+                    </select>
+                    
+                    <div class="search-input-group">
+                        <input type="text" id="circuit-search-input" class="search-input" placeholder="Digite o nome do circuito..." autocomplete="off" onkeypress="if(event.key === 'Enter') executeCircuitSearch()">
+                        <button class="search-btn" onclick="executeCircuitSearch()" title="Pesquisar">
+                            <span class="material-symbols-rounded" style="font-size: 28px;">search</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="circuit-search-results-area" class="search-results-container" style="margin-top: 10px;">
+                    <div style="text-align:center; color: var(--m3-on-surface-variant); padding: 20px; font-size: 0.95rem;">
+                        Selecione a OLT e digite o nome do circuito para descobrir em qual Placa e Porta ele está provisionado.
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+window.openCircuitSearchModal = function() {
+    injectCircuitSearchModal(); 
+    document.getElementById('search-circuit-modal').classList.add('active');
+    document.getElementById('circuit-olt-select').value = '';
+    document.getElementById('circuit-search-input').value = '';
+    document.getElementById('circuit-search-results-area').innerHTML = `
+        <div style="text-align:center; color: var(--m3-on-surface-variant); padding: 20px; font-size: 0.95rem;">
+            Selecione a OLT e digite o nome do circuito para descobrir em qual Placa e Porta ele está provisionado.
+        </div>
+    `;
+    setTimeout(() => document.getElementById('circuit-olt-select').focus(), 100);
+    
+    const sidebar = document.getElementById('main-sidebar');
+    if (sidebar && sidebar.classList.contains('active')) {
+        toggleSidebar();
+    }
+}
+
+window.closeCircuitSearchModal = function(event) {
+    if (event && event.target.id !== 'search-circuit-modal' && event.type === 'click') return;
+    const modal = document.getElementById('search-circuit-modal');
+    if(modal) modal.classList.remove('active');
+}
+
+window.executeCircuitSearch = function() {
+    const oltId = document.getElementById('circuit-olt-select').value;
+    const inputField = document.getElementById('circuit-search-input');
+    const input = inputField.value.trim().toUpperCase(); 
+    const resultsArea = document.getElementById('circuit-search-results-area');
+    
+    if (!oltId) {
+        resultsArea.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Por favor, selecione uma OLT.</div>`;
+        return;
+    }
+
+    if (input.length < 3) {
+        resultsArea.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Por favor, digite pelo menos 3 caracteres para realizar a busca do circuito.</div>`;
+        return;
+    }
+
+    resultsArea.innerHTML = `
+        <div class="search-loading">
+            <div class="spinner"></div>
+            <span>Buscando circuito na OLT ${oltId}...</span>
+        </div>
+    `;
+
+    setTimeout(() => {
+        if (!window.DATA_STORE || !window.DATA_STORE.circuitos) {
+            resultsArea.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Dados de circuitos não carregados. Aguarde a sincronização.</div>`;
+            return;
+        }
+
+        const oltConfig = GLOBAL_MASTER_OLT_LIST.find(o => o.id === oltId);
+        if (!oltConfig) return;
+
+        let foundResults = [];
+        const rowsCircuitos = window.DATA_STORE.circuitos;
+        const rowsLocalidades = window.DATA_STORE.localidades || [];
+
+        for(let placa = 1; placa <= oltConfig.boards; placa++) {
+            let maxPorts = (oltConfig.type === 'furukawa-10') ? 4 : 16;
+            for(let porta = 1; porta <= maxPorts; porta++) {
+                let circ = DataMapper.getCircuitInfo(rowsCircuitos, oltConfig, placa, porta);
+                if (circ && circ !== '-' && circ.toUpperCase().includes(input)) {
+                    let bairro = DataMapper.getBairroInfo(rowsLocalidades, oltId, placa, porta, oltConfig.type) || 'N/A';
+                    foundResults.push({
+                        placa: placa,
+                        porta: porta,
+                        circuito: circ,
+                        bairro: bairro
+                    });
+                }
+            }
+        }
+
+        if (foundResults.length === 0) {
+            resultsArea.innerHTML = `
+                <div style="text-align:center; padding: 30px; color: var(--m3-on-surface-variant);">
+                    <span class="material-symbols-rounded" style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">search_off</span><br>
+                    Nenhum circuito correspondente a <b>"${input}"</b> foi encontrado na OLT ${oltId}.
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        foundResults.forEach(res => {
+            html += `
+                <div class="search-result-card" style="padding: 15px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        
+                        <div style="display: flex; align-items: center; gap: 6px;" title="Circuito">
+                            <span class="material-symbols-rounded" style="color: var(--m3-color-primary);">network_node</span> 
+                            <strong style="font-family: var(--font-family-mono); font-size: 1.05rem;">${res.circuito}</strong>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Nome da OLT">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">dns</span> ${oltId}
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Placa/Porta">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">developer_board</span> Placa ${res.placa} / Porta ${res.porta}
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Bairro">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">location_on</span> ${res.bairro}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsArea.innerHTML = html;
+    }, 100);
+}
+
+// ==============================================================================
+// SISTEMA DE BUSCA GLOBAL DE SERIAL (MODAL E LÓGICA)
+// ==============================================================================
+
+function injectSearchModal() {
+    if (document.getElementById('search-serial-modal')) return;
+
+    const modalHtml = `
+        <div class="search-modal-overlay" id="search-serial-modal" onclick="closeSearchModal(event)">
+            <div class="search-modal" onclick="event.stopPropagation()">
+                <div class="search-modal-header">
+                    <h2><span class="material-symbols-rounded">manage_search</span> Pesquisa de Clientes e Equipamentos</h2>
+                    <button class="search-close-btn" onclick="closeSearchModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                
+                <div class="search-input-group">
+                    <input type="text" id="serial-search-input" class="search-input" placeholder="Buscar por Serial ou Código..." autocomplete="off" onkeypress="if(event.key === 'Enter') executeSerialSearch()">
+                    <button class="search-btn" onclick="executeSerialSearch()" title="Pesquisar">
+                        <span class="material-symbols-rounded" style="font-size: 28px;">search</span>
+                    </button>
+                </div>
+                
+                <div id="search-results-area" class="search-results-container">
+                    <div style="text-align:center; color: var(--m3-on-surface-variant); padding: 20px; font-size: 0.95rem;">
+                        O sistema fará uma varredura cirúrgica em todas as OLTs cadastradas. Você pode buscar pelo Serial completo do equipamento, Código do cliente ou trechos finais.
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function openSearchModal() {
+    injectSearchModal(); 
+    document.getElementById('search-serial-modal').classList.add('active');
+    document.getElementById('serial-search-input').value = '';
+    document.getElementById('search-results-area').innerHTML = '';
+    setTimeout(() => document.getElementById('serial-search-input').focus(), 100);
+    
+    const sidebar = document.getElementById('main-sidebar');
+    if (sidebar && sidebar.classList.contains('active')) {
+        toggleSidebar();
+    }
+}
+
+function closeSearchModal(event) {
+    if (event && event.target.id !== 'search-serial-modal' && event.type === 'click') return;
+    const modal = document.getElementById('search-serial-modal');
+    if(modal) modal.classList.remove('active');
+}
+
+async function executeSerialSearch() {
+    const inputField = document.getElementById('serial-search-input');
+    const input = inputField.value.trim().toUpperCase(); 
+    const resultsArea = document.getElementById('search-results-area');
+    
+    if (input.length < 4) {
+        resultsArea.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Por favor, digite pelo menos 4 caracteres para realizar a busca.</div>`;
+        return;
+    }
+    
+    const searchTarget = input;
+
+    resultsArea.innerHTML = `
+        <div class="search-loading">
+            <div class="spinner"></div>
+            <span>Varrendo dados nas OLTs. Por favor, aguarde...</span>
+        </div>
+    `;
+
+    try {
+        if (typeof GLOBAL_MASTER_OLT_LIST === 'undefined' || typeof GLOBAL_API_KEY === 'undefined' || typeof GLOBAL_SHEET_ID === 'undefined') {
+             resultsArea.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Erro Interno: Variáveis de API e Lista de OLTs não detectadas. A busca requer que a arquitetura global esteja carregada.</div>`;
+             return;
+        }
+
+        let foundResults = [];
+        
+        // Puxa os circuitos uma vez para não ter que buscar repetidamente
+        const rowsCircuitos = (window.DATA_STORE && window.DATA_STORE.circuitos) ? window.DATA_STORE.circuitos : [];
+        
+        const fetchPromises = GLOBAL_MASTER_OLT_LIST.map(async (olt) => {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${GLOBAL_SHEET_ID}/values/${olt.sheetTab}!A:Z?key=${GLOBAL_API_KEY}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                const data = await response.json();
+                if (!data.values) return null;
+                
+                for (let i = 1; i < data.values.length; i++) {
+                    const row = data.values[i];
+                    
+                    let serialVal = '';
+                    let codigoVal = '';
+                    
+                    // LIMPEZA DA POTÊNCIA: Remove "dBm" (qualquer case) e remove todos os espaços para isolar apenas o número
+                    let potenciaVal = String(row[5] || '').replace(/dbm/ig, '').replace(/\s+/g, '');
+                    
+                    let colStatus = 2;
+
+                    // Mapeamento focado: Nokia e Furukawa
+                    if (olt.type === 'nokia') {
+                        serialVal = String(row[2] || '').toUpperCase().trim();
+                        codigoVal = String(row[8] || '').toUpperCase().trim();
+                        colStatus = 4;
+                    } else { // Furukawa
+                        serialVal = String(row[3] || '').toUpperCase().trim();
+                        codigoVal = String(row[7] || '').toUpperCase().trim();
+                        colStatus = 2;
+                    }
+                    
+                    if ((serialVal && (serialVal.endsWith(searchTarget) || serialVal.includes(searchTarget))) || 
+                        (codigoVal && (codigoVal.endsWith(searchTarget) || codigoVal.includes(searchTarget)))) {
+                        
+                        let statusStr = "UNKNOWN";
+                        let statusClass = "status-unknown";
+                        
+                        let isOnline = false;
+                        if (typeof DataMapper !== 'undefined') {
+                            isOnline = DataMapper.isOnline(row[colStatus], olt.type);
+                        } else {
+                            let statusCell = row[colStatus] ? String(row[colStatus]).toUpperCase().trim() : '';
+                            isOnline = statusCell.includes("UP") || statusCell === "ACTIVE";
+                        }
+                        
+                        if (isOnline) { 
+                            statusStr = "UP"; 
+                            statusClass = "status-up"; 
+                        } else { 
+                            statusStr = "DOWN"; 
+                            statusClass = "status-down"; 
+                        }
+
+                        let portaFull = row[0] || "N/A";
+                        let placa = "-";
+                        let porta = "-";
+                        let circuitoNome = "-";
+
+                        if (typeof DataMapper !== 'undefined') {
+                            const portInfo = DataMapper.extractPort(portaFull, olt.type);
+                            if (portInfo) {
+                                placa = portInfo.placa;
+                                porta = portInfo.porta;
+                                const pseudoConfig = { id: olt.id || olt.sheetTab, oltName: olt.id || olt.sheetTab, type: olt.type };
+                                circuitoNome = DataMapper.getCircuitInfo(rowsCircuitos, pseudoConfig, placa, porta);
+                            } else {
+                                const parts = String(portaFull).split('/');
+                                if(parts.length >= 2) {
+                                    placa = parts[parts.length-2];
+                                    porta = parts[parts.length-1];
+                                }
+                            }
+                        }
+
+                        foundResults.push({
+                            serial: serialVal,
+                            codigo: codigoVal,
+                            oltName: olt.id || olt.sheetTab,
+                            placa: placa,
+                            porta: porta,
+                            circuito: circuitoNome,
+                            potencia: potenciaVal,
+                            status: statusStr,
+                            statusClass: statusClass
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error("Erro ao varrer a aba: " + olt.sheetTab, e);
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
+        if (foundResults.length === 0) {
+            resultsArea.innerHTML = `
+                <div style="text-align:center; padding: 30px; color: var(--m3-on-surface-variant);">
+                    <span class="material-symbols-rounded" style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">search_off</span><br>
+                    Nenhum cliente correspondente a <b>"${input}"</b> foi encontrado nas OLTs.
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        foundResults.forEach(res => {
+            html += `
+                <div class="search-result-card" style="padding: 15px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        
+                        <div style="display: flex; align-items: center; gap: 6px;" title="Serial do Equipamento">
+                            <span class="material-symbols-rounded" style="color: var(--m3-color-primary);">barcode</span> 
+                            <strong style="font-family: var(--font-family-mono); font-size: 1.05rem;">${res.serial || 'N/A'}</strong>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 6px;" title="Código do Cliente">
+                            <span class="material-symbols-rounded" style="color: var(--m3-color-primary);">deployed_code_account</span> 
+                            <strong style="font-family: var(--font-family-mono); font-size: 1.05rem;">${res.codigo || 'N/A'}</strong>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Nome da OLT">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">dns</span> ${res.oltName}
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Placa/Porta">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">developer_board</span> ${res.placa}/${res.porta}
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Circuito">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">network_node</span> ${res.circuito}
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 6px; color: var(--m3-on-surface-variant);" title="Potência (dBm)">
+                            <span class="material-symbols-rounded" style="font-size: 20px;">infrared</span> ${res.potencia || 'N/A'} dBm
+                        </div>
+
+                        <div style="margin-top: 4px;">
+                            <span class="search-result-status ${res.statusClass}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.95rem;">
+                                <span class="material-symbols-rounded" style="font-size: 20px;">online_prediction</span> ${res.status}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsArea.innerHTML = html;
+
+    } catch (error) {
+        resultsArea.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Falha de comunicação com o banco de dados. Tente novamente mais tarde.</div>`;
+        console.error(error);
+    }
+}
+
+// ==============================================================================
+// SISTEMA DE EMERGÊNCIA (GOOGLE LOGIN E COLETA ASSÍNCRONA)
+// ==============================================================================
+
+const OLT_EMERGENCY_MAP = {
+    'HEL-1': { row: 2, timeSecs: 300 }, 
+    'HEL-2': { row: 3, timeSecs: 240 }, 
+    'PQA-1': { row: 4, timeSecs: 300 }, 
+    'PSV-1': { row: 5, timeSecs: 300 }, 
+    'MGP':   { row: 6, timeSecs: 240 }, 
+    'SBO-1': { row: 7, timeSecs: 180 }, 
+    'SBO-2': { row: 8, timeSecs: 180 }, 
+    'SBO-3': { row: 9, timeSecs: 180 }, 
+    'SBO-4': { row: 10, timeSecs: 180 }, 
+    'PSV-7': { row: 11, timeSecs: 180 }, 
+    'LTXV-1':{ row: 12, timeSecs: 180 }, 
+    'LTXV-2':{ row: 13, timeSecs: 180 }, 
+    'PQA-2': { row: 14, timeSecs: 180 }, 
+    'PQA-3': { row: 15, timeSecs: 180 }, 
+    'SB-1':  { row: 16, timeSecs: 180 }, 
+    'SB-2':  { row: 17, timeSecs: 180 }, 
+    'SB-3':  { row: 18, timeSecs: 180 }
+};
+
+let emergencyInterval = null;
+let tokenClient;
+let gapiAccessToken = null;
+
+function checkAuthAndOpenEmergency() {
+    if (gapiAccessToken) {
+        openEmergencyModal();
+        return;
+    }
+
+    if (!window.google || !window.google.accounts) {
+        alert("A segurança do Google ainda está carregando ou o script não foi adicionado. Tente novamente em alguns segundos.");
+        return;
+    }
+
+    if (!tokenClient) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: '310061647059-cl0o934un533jum0uka0t0fmnef5m211.apps.googleusercontent.com',
+            scope: 'https://www.googleapis.com/auth/spreadsheets',
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    gapiAccessToken = tokenResponse.access_token;
+                    openEmergencyModal();
+                }
+            },
+        });
+    }
+    
+    tokenClient.requestAccessToken({prompt: ''}); 
+}
+
+function injectEmergencyModal() {
+    if (document.getElementById('emergency-action-modal')) return;
+
+    const modalHtml = `
+        <div class="search-modal-overlay" id="emergency-action-modal" onclick="closeEmergencyModal(event)">
+            <div class="search-modal" onclick="event.stopPropagation()">
+                <div class="search-modal-header emergency-header">
+                    <h2><span class="material-symbols-rounded">warning</span> Painel de Emergência</h2>
+                    <button class="search-close-btn" onclick="closeEmergencyModal()" title="Cancelar"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                <div id="emergency-dynamic-area"></div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function openEmergencyModal() {
+    injectEmergencyModal();
+    const modal = document.getElementById('emergency-action-modal');
+    modal.classList.add('active');
+    
+    const sidebar = document.getElementById('main-sidebar');
+    if (sidebar && sidebar.classList.contains('active')) toggleSidebar();
+
+    renderEmergencySelection();
+}
+
+function closeEmergencyModal(event) {
+    if (event && event.target.id !== 'emergency-action-modal' && event.type === 'click') return;
+    const modal = document.getElementById('emergency-action-modal');
+    if (modal) modal.classList.remove('active');
+    
+    if(emergencyInterval) clearInterval(emergencyInterval);
+}
+
+function renderEmergencySelection() {
+    const area = document.getElementById('emergency-dynamic-area');
+    
+    if (typeof GLOBAL_MASTER_OLT_LIST === 'undefined') {
+        area.innerHTML = `<div style="text-align:center; color: var(--m3-error); padding: 20px;">Erro: Lista de OLTs não encontrada.</div>`;
+        return;
+    }
+
+    let cardsHtml = '';
+    GLOBAL_MASTER_OLT_LIST.forEach(olt => {
+        const displayId = olt.id || olt.sheetTab;
+        cardsHtml += `
+            <div class="emergency-card-btn" onclick="confirmEmergencyOlt('${displayId}')">
+                <span class="material-symbols-rounded">dns</span>
+                <span class="emergency-card-name">${displayId}</span>
+            </div>
+        `;
+    });
+
+    area.innerHTML = `
+        <p style="text-align: center; color: var(--m3-on-surface-variant); margin-bottom: 10px;">Selecione o equipamento que necessita de varredura prioritária local:</p>
+        <div class="emergency-grid">
+            ${cardsHtml}
+        </div>
+        <div style="text-align:center; margin-top: 15px; font-size: 0.8rem; color: #4ade80;">
+            <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle;">verified_user</span> 
+            Sessão autenticada ativa. Suas ações serão registradas.
+        </div>
+    `;
+}
+
+function confirmEmergencyOlt(oltId) {
+    const area = document.getElementById('emergency-dynamic-area');
+    area.innerHTML = `
+        <div class="emergency-confirm-box">
+            <span class="material-symbols-rounded text-danger" style="font-size: 60px;">warning</span>
+            <div class="emergency-confirm-title">
+                Deseja realmente disparar a coleta de emergência no servidor local para a OLT:
+                <span class="emergency-confirm-highlight">${oltId}</span>
+            </div>
+            <div class="emergency-btn-group">
+                <button class="btn-cancel" onclick="renderEmergencySelection()">NÃO, VOLTAR</button>
+                <button class="btn-confirm-danger" onclick="executeEmergencySignal('${oltId}')">SIM, DISPARAR</button>
+            </div>
+        </div>
+    `;
+}
+
+async function executeEmergencySignal(oltId) {
+    const area = document.getElementById('emergency-dynamic-area');
+    const oltData = OLT_EMERGENCY_MAP[oltId];
+
+    if (!oltData) {
+        area.innerHTML = `<div class="emergency-confirm-box"><span class="text-danger">Erro de mapeamento para OLT ${oltId}.</span><br><button class="btn-cancel" style="margin-top:20px;" onclick="renderEmergencySelection()">VOLTAR</button></div>`;
+        return;
+    }
+
+    area.innerHTML = `
+        <div class="search-loading">
+            <div class="spinner"></div>
+            <span style="color: var(--m3-on-surface);">Autenticando e enviando sinal para Nuvem...</span>
+        </div>
+    `;
+
+    try {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${GLOBAL_SHEET_ID}/values/CONTROLE!B${oltData.row}?valueInputOption=USER_ENTERED`;
+        
+        const payload = {
+            "range": `CONTROLE!B${oltData.row}`,
+            "majorDimension": "ROWS",
+            "values": [ ["COLETAR"] ]
+        };
+
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${gapiAccessToken}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error.message || "Erro de permissão na escrita.");
+        }
+
+        startEmergencyTimer(oltId, oltData.timeSecs);
+
+    } catch (error) {
+        console.error("Erro ao enviar sinal de emergência autenticado:", error);
+        area.innerHTML = `
+            <div class="emergency-confirm-box">
+                <span class="text-danger">Falha de Autorização ou Conexão.</span>
+                <p style="font-size: 0.85rem; color: var(--m3-on-surface-variant);">${error.message}</p>
+                <button class="btn-cancel" style="margin-top:20px;" onclick="renderEmergencySelection()">VOLTAR</button>
+            </div>`;
+    }
+}
+
+function startEmergencyTimer(oltId, totalSeconds) {
+    const area = document.getElementById('emergency-dynamic-area');
+    let timeLeft = totalSeconds;
+
+    function formatTime(secs) {
+        const m = Math.floor(secs / 60).toString().padStart(2, '0');
+        const s = (secs % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    area.innerHTML = `
+        <div class="emergency-confirm-box" style="gap: 10px;">
+            <span class="material-symbols-rounded text-danger" style="font-size: 40px; animation: textFlash 2s infinite;">sync</span>
+            <div style="font-size: 1.1rem; color: var(--m3-on-surface);">
+                Sinal enviado com sucesso para <b class="text-danger">${oltId}</b>!
+            </div>
+            <div style="font-size: 0.9rem; color: var(--m3-on-surface-variant); margin-bottom: 10px;">
+                O Servidor local já iniciou a coleta. Aguarde a finalização...
+            </div>
+            
+            <div class="emergency-timer-text" id="emergency-clock">${formatTime(timeLeft)}</div>
+            
+            <div class="emergency-progress-container">
+                <div class="emergency-progress-bar" id="emergency-bar"></div>
+            </div>
+        </div>
+    `;
+
+    if(emergencyInterval) clearInterval(emergencyInterval);
+
+    emergencyInterval = setInterval(() => {
+        timeLeft--;
+        
+        const clockEl = document.getElementById('emergency-clock');
+        const barEl = document.getElementById('emergency-bar');
+        
+        if (clockEl && barEl) {
+            clockEl.textContent = formatTime(timeLeft);
+            const percent = ((totalSeconds - timeLeft) / totalSeconds) * 100;
+            barEl.style.width = `${percent}%`;
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(emergencyInterval);
+            area.innerHTML = `
+                <div class="emergency-confirm-box">
+                    <span class="material-symbols-rounded" style="font-size: 60px; color: #4ade80;">check_circle</span>
+                    <div style="font-size: 1.3rem; color: var(--m3-on-surface); margin-top: 10px;">
+                        Coleta Finalizada!
+                    </div>
+                    <div style="font-size: 0.95rem; color: var(--m3-on-surface-variant); margin-top: 5px;">
+                        Os dados da OLT ${oltId} já devem estar atualizados na nuvem.<br>Atualize a página no menu para visualizar.
+                    </div>
+                    <button class="btn-cancel" style="margin-top: 25px; width: 100%;" onclick="closeEmergencyModal()">FECHAR JANELA</button>
+                </div>
+            `;
+        }
+    }, 1000);
+}
+
+// ==============================================================================
+// SISTEMA DE GERADOR DE RELATÓRIO PDF (MODAL)
+// ==============================================================================
+
+function injectRelatorioModal() {
+    if (document.getElementById('relatorio-pdf-modal')) return;
+
+    const modalHtml = `
+        <div class="search-modal-overlay" id="relatorio-pdf-modal" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal(event)">
+            <div class="search-modal" onclick="event.stopPropagation()">
+                <div class="search-modal-header">
+                    <h2><span class="material-symbols-rounded">picture_as_pdf</span> Relatório de Equipamentos</h2>
+                    <button class="search-close-btn" onclick="if(window.closeRelatorioModal) window.closeRelatorioModal()" title="Fechar"><span class="material-symbols-rounded">close</span></button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="display: flex; gap: 10px;">
+                        <select id="relatorio-select-olt" class="filter-select" onchange="if(window.updateRelatorioPlacas) window.updateRelatorioPlacas()">
+                            <option value="">1. Selecione a OLT</option>
+                        </select>
+                        <select id="relatorio-select-placa" class="filter-select" onchange="if(window.updateRelatorioPortas) window.updateRelatorioPortas()" disabled>
+                            <option value="">2. Placa</option>
+                        </select>
+                        <select id="relatorio-select-porta" class="filter-select" disabled>
+                            <option value="">3. Porta</option>
+                        </select>
+                    </div>
+                    
+                    <button class="search-btn" style="width: 100%; padding: 12px; font-weight: bold; gap: 8px;" onclick="if(window.addRelatorioSelection) window.addRelatorioSelection()">
+                        <span class="material-symbols-rounded">add_circle</span> ADICIONAR PORTA AO RELATÓRIO
+                    </button>
+                </div>
+
+                <div id="relatorio-selections-area" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; padding-right: 5px;" class="custom-scroll">
+                    <!-- Seleções aparecerão aqui -->
+                </div>
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; margin-top: 10px;">
+                    <button class="search-btn" id="btn-gerar-pdf-final" style="width: 100%; padding: 16px; font-size: 1.1rem; font-weight: bold; background-color: #67079f; gap: 10px; display: none;" onclick="if(window.gerarPDFFinal) window.gerarPDFFinal()">
+                        <span class="material-symbols-rounded">download</span> GERAR PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+// ==============================================================================
+// UTILITÁRIOS GLOBAIS DE UI
+// ==============================================================================
+
+function checkIsHomePage() {
+    const path = window.location.pathname;
+    return path.includes('index.html') || path === '/' || !path.endsWith('.html');
+}
+
+function updateGlobalTimestamp() {
+    const timestampEl = document.getElementById('update-timestamp');
+    if (!timestampEl) return;
+
+    const now = new Date();
+    const dataFormatada = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const horaFormatada = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    timestampEl.innerHTML = `
+        <span class="material-symbols-rounded">calendar_today</span> ${dataFormatada}
+        <span style="display: inline-block; width: 1px; height: 12px; background: rgba(255,255,255,0.3); margin: 0 5px;"></span>
+        <span class="material-symbols-rounded">schedule</span> ${horaFormatada}
+    `;
+    timestampEl.style.color = 'var(--m3-on-surface-variant)';
+    
+    timestampEl.classList.remove('updated-anim');
+    void timestampEl.offsetWidth; 
+    timestampEl.classList.add('updated-anim');
+}
+
+async function loadTimestamp(sheetTab, apiKey, sheetId) {
+    updateGlobalTimestamp();
+}
+
+// ==============================================================================
+// SISTEMA DE AUTO-HIDE (MODO KIOSK/IMERSÃO EXPANSIVA)
+// ==============================================================================
+function initAutoHide() {
+    let idleTimer;
+    const idleTime = 10000; 
+
+    const resetTimer = () => {
+        document.body.classList.remove('idle');
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => document.body.classList.add('idle'), idleTime);
+    };
+
+    window.addEventListener('mousemove', resetTimer);
+    window.addEventListener('mousedown', resetTimer);
+    window.addEventListener('keypress', resetTimer);
+    window.addEventListener('touchmove', resetTimer);
+    window.addEventListener('scroll', resetTimer);
+
+    resetTimer();
+}
+
+document.addEventListener('DOMContentLoaded', initAutoHide);
+
+// ==============================================================================
+// REGISTRO GLOBAL DO SERVICE WORKER
+// ==============================================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(reg => console.log('Service Worker registrado com sucesso via layout.js!'))
+            .catch(err => console.error('Erro ao registrar Service Worker:', err));
+    });
+}

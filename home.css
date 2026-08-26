@@ -1,0 +1,448 @@
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS - DASHBOARD HOME (index.html)
+   ========================================================================== */
+
+/* Cores de Destaque por Serviço */
+:root {
+    --color-rede: #4ade80;      /* Verde (Network) */
+    --color-energia: #f59e0b;   /* Laranja/Amarelo (Lightning) */
+    --color-potencia: #d946ef;  /* Roxo/Rosa (Insights) */
+    --color-temperatura: #ef4444; /* Vermelho (Thermometer) */
+    --color-equipamentos: #06b6d4; /* Ciano (Router) */
+}
+
+/* Grid Exclusivo da Home para layout de 1 coluna (Etapa 1) */
+.home-wallboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px; 
+    width: 100%;
+    padding-bottom: 20px;
+}
+
+/* Garante que o card de equipamentos ocupe a linha inteira */
+#card-fabricantes {
+    grid-column: 1 / -1;
+}
+
+/* Cores aplicadas aos ícones dos cabeçalhos dos cards */
+#home-card-rede .card-header h3 span { color: var(--color-rede); }
+#home-card-energia .card-header h3 span { color: var(--color-energia); }
+#home-card-potencia .card-header h3 span { color: var(--color-potencia); }
+#home-card-temperatura .card-header h3 span { color: var(--color-temperatura); }
+#card-fabricantes .card-header h3 span { color: var(--color-equipamentos); }
+
+/* ==========================================================================
+   TIPOGRAFIA E ÍCONES (PADRONIZAÇÃO MD3)
+   ========================================================================== */
+.primary-value {
+    font-size: 2.5rem;
+    font-family: var(--font-family-mono);
+    font-weight: 700;
+    line-height: 1;
+}
+
+.primary-icon {
+    font-size: 28px !important;
+}
+
+.secondary-value {
+    font-size: 1.2rem;
+    font-family: var(--font-family-mono);
+    font-weight: 700;
+}
+
+.secondary-icon {
+    font-size: 20px !important;
+}
+
+/* ==========================================================================
+   CARDS GLOBAIS E ESTRUTURA WALLBOARD (WIDESCREEN MASONRY)
+   ========================================================================== */
+.global-card {
+    background-color: var(--m3-surface-container);
+    border-radius: 20px; 
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 0; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.global-card:hover { 
+    transform: translateY(-4px); 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3); 
+}
+
+.global-card .card-header {
+    background-color: rgba(234, 208, 255, 0.03);
+    padding: 12px 20px; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.global-card .card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--m3-on-surface);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* O CORAÇÃO DO NOVO LAYOUT: CSS GRID DENSE */
+.widescreen-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
+    grid-auto-flow: dense; 
+    gap: 12px;
+    padding: 15px 20px;
+}
+
+/* CARD MÉDIO (RESUMO GERAL) - Tamanho fixo e proporcional */
+.resumo-card {
+    grid-column: span 2; 
+    grid-row: span 2;    
+    background: rgba(103, 7, 159, 0.15);
+    border: 1px solid var(--m3-primary);
+    border-radius: 14px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.1);
+}
+
+.resumo-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--m3-on-surface-variant);
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.resumo-main-val {
+    font-family: var(--font-family-mono);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.resumo-sec-val {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--m3-on-surface-variant);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+/* NOVO CONTÊINER DE GRÁFICO (Etapa 2 e 3) */
+.chart-container {
+    grid-column: 3 / -1; 
+    grid-row: span 2;
+    background: rgba(255,255,255,0.01);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 15px;
+    box-sizing: border-box;
+    min-height: 170px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* CONTAINER PARA OS MINIGRÁFICOS GAUGE (Etapa 4) */
+.gauge-wrapper {
+    position: relative;
+    width: 60px;
+    height: 30px;
+    margin: 2px 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+}
+
+/* CONTAINER PARA OS HEATMAPS TÉRMICOS (Etapa 5) */
+.heatmap-wrapper {
+    position: relative;
+    width: 60px;
+    height: 30px; 
+    margin: 2px 0;
+    pointer-events: none;
+}
+
+/* FORÇAR CANVAS A RESPEITAR A JAULA */
+.gauge-wrapper canvas,
+.heatmap-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* MINI-CARDS (AS OLTS) */
+.status-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 8px 4px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; 
+    text-align: center;
+    gap: 1px;
+    transition: transform 0.2s, background 0.2s;
+    height: 100%;
+    min-height: 90px; 
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.status-card:hover { 
+    transform: translateY(-2px); 
+    background: rgba(255,255,255,0.05); 
+}
+
+.olt-name { 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    color: var(--m3-on-surface); 
+}
+
+.olt-value { 
+    font-family: var(--font-family-mono); 
+    font-size: 1.1rem; 
+    line-height: 1; 
+}
+
+.olt-label { 
+    font-size: 0.65rem; 
+    color: var(--m3-on-surface-variant); 
+    text-transform: uppercase;
+}
+
+/* CORES DE STATUS DINÂMICAS PARA OS MINICARDS */
+.status-card.ok { 
+    background: rgba(103, 194, 58, 0.05); 
+    border-color: rgba(103, 194, 58, 0.15); 
+}
+.status-card.ok .olt-value, .status-card.ok .material-symbols-rounded { 
+    color: var(--m3-color-success); 
+}
+
+.status-card.danger { 
+    background: rgba(245, 108, 108, 0.15); 
+    border-color: rgba(245, 108, 108, 0.4); 
+    box-shadow: 0 0 8px rgba(245, 108, 108, 0.2); 
+}
+.status-card.danger .olt-value, .status-card.danger .material-symbols-rounded { 
+    color: var(--m3-color-error); 
+}
+
+.status-card.warning { 
+    background: rgba(230, 162, 60, 0.15); 
+    border-color: rgba(230, 162, 60, 0.4); 
+}
+.status-card.warning .olt-value, .status-card.warning .material-symbols-rounded { 
+    color: var(--m3-color-warning); 
+}
+
+/* ==========================================================================
+   ESTRUTURAS ORIGINAIS MANTIDAS (Equipamentos e Modais)
+   ========================================================================== */
+.card-body {
+    padding: 20px; 
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; 
+    gap: 20px;
+    flex: 1;
+}
+
+.eqp-badge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+    gap: 12px;
+    width: 100%;
+}
+
+.eqp-badge-item {
+    background-color: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
+}
+
+.eqp-badge-item:hover {
+    transform: translateY(-2px);
+    background-color: rgba(255,255,255,0.06);
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+.eqp-logo-img {
+    max-height: 24px;
+    max-width: 90%;
+    object-fit: contain;
+    margin-bottom: 8px;
+    transition: opacity 0.2s, filter 0.2s;
+}
+
+.eqp-badge-item.disabled .eqp-logo-img {
+    opacity: 0.25; 
+    filter: grayscale(100%);
+}
+
+.eqp-logo-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--m3-on-surface);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.eqp-total-value {
+    font-family: var(--font-family-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #60a5fa; 
+    line-height: 1;
+}
+
+.eqp-badge-item.disabled .eqp-total-value {
+    color: var(--m3-on-surface-variant);
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   SISTEMA HÍBRIDO: TOOLTIP INTELIGENTE (PC) E MODAL RÁPIDO (MOBILE)
+   ========================================================================== */
+#smart-tooltip {
+    position: absolute;
+    background-color: var(--m3-surface-container-high);
+    color: var(--m3-on-surface);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--m3-outline);
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.6);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 99999;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+    font-size: 0.85rem;
+    width: max-content;
+    text-align: left;
+}
+
+#smart-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--m3-outline) transparent transparent transparent;
+}
+
+.smart-tooltip-title {
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+    color: var(--m3-on-surface);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.smart-tooltip-line {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.fast-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none; 
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    backdrop-filter: blur(2px);
+}
+
+.fast-modal-box {
+    background-color: var(--m3-surface-container-high);
+    border: 1px solid var(--m3-outline);
+    border-radius: 16px;
+    padding: 20px;
+    width: 280px;
+    max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    position: relative;
+    text-align: left;
+    color: var(--m3-on-surface);
+}
+
+.fast-modal-box .close-btn {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: none; border: none;
+    color: var(--m3-on-surface-variant); 
+    font-size: 1.5rem; cursor: pointer;
+    padding: 0; line-height: 1;
+}
+
+.fast-modal-box .close-btn:hover {
+    color: var(--m3-on-surface);
+}
+
+/* ==========================================================================
+   AJUSTES RESPONSIVOS (Telas menores)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .home-wallboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        grid-column: 1 / -1; 
+        grid-row: auto;
+        min-height: 190px;
+    }
+    
+    .resumo-card {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+}

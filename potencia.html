@@ -1,0 +1,81 @@
+<!-- potencia.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potência Óptica - NOC</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="potencia.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <div id="header-placeholder"></div>
+
+        <main class="main-content" style="flex-direction: column;">
+            <div id="potencia-grid" class="grid-container"></div>
+        </main>
+    </div>
+
+    <div id="super-modal" class="modal-overlay" onclick="closeSuperModal(event)">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="super-modal-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded">dns</span> Detalhes de Sinal
+                </h3>
+                <button class="close-modal" onclick="closeSuperModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                
+                <div id="potencia-view-placas">
+                    <div id="potencia-placas-list" class="placas-grid"></div>
+                </div>
+
+                <div id="potencia-view-detalhes" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <button class="btn-voltar-placas" style="margin-bottom: 0;" onclick="backToPotenciaPlacas()">
+                            <span class="material-symbols-rounded">arrow_back</span> Voltar para Placas
+                        </button>
+                        <button class="btn-voltar-placas" style="margin-bottom: 0; padding: 10px;" onclick="exportPotenciaPlacaToTXT()" title="Exportar para TXT">
+                            <span class="material-symbols-rounded">download</span>
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th>PORTAS</th>
+                                    <th>CIRCUITOS</th>
+                                    <th>BAIRROS</th>
+                                    <th>MÉDIA DE POTÊNCIA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="potencia-detalhes-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="data-mapper.js"></script>
+    <script src="data-store.js"></script>
+    <script src="layout.js"></script>
+    <script src="notifications.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="potencia-engine.js"></script>
+    <script src="relatorio-pdf.js"></script>
+    <script src="boletim-gerencial.js"></script>
+</body>
+</html>

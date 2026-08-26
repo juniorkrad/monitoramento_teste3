@@ -1,0 +1,158 @@
+<!-- dashboard360.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 360 - NOC</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="dashboard360.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <div id="header-placeholder"></div>
+
+        <main class="main-content" style="flex-direction: column;">
+            <div class="grid-container" id="dashboard-container">
+                <div style="grid-column: 1/-1; text-align: center; color: var(--m3-on-surface-variant); padding: 40px 0;">
+                    <span class="material-symbols-rounded" style="font-size: 48px; display: block; margin-bottom: 10px; animation: textFlash 1.5s infinite;">sync</span>
+                    <h2>Sincronizando dados da rede...</h2>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal OLT Detalhes -->
+    <div id="super-modal" class="modal-overlay">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modal-title" style="margin: 0; display: flex; align-items: center; gap: 8px; color: var(--m3-on-surface);">
+                    <span class="material-symbols-rounded">dns</span> OLT Detalhes
+                </h3>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div id="btn-gerar-boletim-olt-360" style="display: none;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button onclick="Dashboard360Engine.gerarBoletimEmergencia360Offscreen(event)" class="card-header-button" title="Gerar Boletim de Emergência (Portas Críticas)" style="color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); background: rgba(255, 51, 51, 0.1);">
+                                <span class="material-symbols-rounded">warning</span>
+                            </button>
+                            <button onclick="Dashboard360Engine.gerarBoletimOlt360Offscreen(event)" class="card-header-button" title="Gerar Boletim da OLT" style="background: transparent; border: none; color: var(--m3-on-surface-variant); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: color 0.2s;">
+                                <span class="material-symbols-rounded" style="font-size: 26px;">assignment</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="close-btn" style="background: none; border: none; color: var(--m3-on-surface-variant); cursor: pointer; font-size: 24px;" onclick="Dashboard360Engine.closeModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                
+                <div id="view-placas">
+                    <div class="placas-grid" id="placas-container"></div>
+                </div>
+
+                <div id="view-portas" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <button id="btn-back" class="btn-voltar-placas" style="margin-bottom: 0;" onclick="Dashboard360Engine.showPlacas()">
+                            <span class="material-symbols-rounded">arrow_back</span> Voltar para Placas
+                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-gerar-boletim-360" class="btn-voltar-placas" style="margin-bottom: 0; padding: 10px;" onclick="Dashboard360Engine.gerarBoletimPlaca360Offscreen(event)" title="Gerar Boletim de Placa">
+                                <span class="material-symbols-rounded">assignment</span>
+                            </button>
+                            <button id="btn-export-txt-360" class="btn-voltar-placas" style="margin-bottom: 0; padding: 10px;" onclick="Dashboard360Engine.exportarPlacaTxt()" title="Exportar para TXT">
+                                <span class="material-symbols-rounded">download</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="noc-table">
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th>PORTAS</th>
+                                    <th>CIRCUITOS</th>
+                                    <th>BAIRROS</th>
+                                    <th style="text-align: center;">REDE</th>
+                                    <th style="text-align: center;">ENERGIA</th>
+                                    <th style="text-align: center;">POTÊNCIA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portas-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resumo Rápido da Porta -->
+    <div id="quick-view-modal" class="modal-overlay" style="display: none; z-index: 5000;" onclick="Dashboard360Engine.closeQuickViewModal(event)">
+        <div class="modal-content" style="max-width: 480px; padding: 0; overflow: hidden;">
+            <div class="quick-view-header">
+                <h3 id="quick-view-title" style="margin: 0; display: flex; align-items: center; gap: 8px; color: var(--m3-on-surface); font-size: 1.1rem;">
+                    <span class="material-symbols-rounded">info</span> OLT - 0/00 - CIRCUITO
+                </h3>
+                <button class="close-btn" style="background: none; border: none; color: var(--m3-on-surface-variant); cursor: pointer; font-size: 24px;" onclick="Dashboard360Engine.closeQuickViewModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div class="quick-view-grid">
+                    <div class="quick-stat-card card-total">
+                        <span class="material-symbols-rounded icon">group</span>
+                        <div class="details">
+                            <span class="label">Total</span>
+                            <span class="value" id="qv-total">0</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-card card-up">
+                        <span class="material-symbols-rounded icon">arrow_upward</span>
+                        <div class="details">
+                            <span class="label">Online (UP)</span>
+                            <span class="value" id="qv-up">0</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-card card-down">
+                        <span class="material-symbols-rounded icon">arrow_downward</span>
+                        <div class="details">
+                            <span class="label">Offline (DOWN)</span>
+                            <span class="value" id="qv-down">0</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-card card-energy">
+                        <span class="material-symbols-rounded icon">power_off</span>
+                        <div class="details">
+                            <span class="label">Sem Energia</span>
+                            <span class="value" id="qv-energy">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="data-mapper.js"></script>
+    <script src="data-store.js"></script>
+    <script src="layout.js"></script>
+    
+    <script src="olt-engine.js"></script>
+    <script src="energia-engine.js"></script>
+    <script src="potencia-engine.js"></script>
+    <script src="temperatura-engine.js"></script>
+    <script src="dashboard360-engine.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof loadHeader === 'function') loadHeader({ title: "Dashboard 360", exactTitle: true });
+            if (typeof loadFooter === 'function') loadFooter();
+            if (typeof updateGlobalTimestamp === 'function') updateGlobalTimestamp(); 
+        });
+    </script>
+</body>
+</html>

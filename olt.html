@@ -1,0 +1,100 @@
+<!-- olt.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status das OLTs - Monitoramento</title>
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="olt.css">
+</head>
+<body>
+
+    <div class="page-container">
+        <div id="header-placeholder"></div>
+
+        <main class="main-content" style="flex-direction: column;">
+            <div id="overview-grid" class="grid-container"></div>
+        </main>
+    </div>
+
+    <div id="super-modal" class="modal-overlay" onclick="closeSuperModal(event)">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="super-modal-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded">dns</span> Detalhes da OLT
+                </h3>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div id="btn-gerar-boletim" style="display: none;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button onclick="window.gerarBoletimEmergenciaOltOffscreen(event)" class="card-header-button" title="Gerar Boletim de Emergência (Portas Críticas)" style="color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); background: rgba(255, 51, 51, 0.1);">
+                                <span class="material-symbols-rounded">warning</span>
+                            </button>
+                            <button onclick="window.gerarBoletimResumoOltOffscreen(event)" class="card-header-button" title="Gerar Boletim da OLT">
+                                <span class="material-symbols-rounded">assignment</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="close-modal" onclick="closeSuperModal()">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                
+                <div id="olt-view-placas">
+                    <div id="olt-placas-list" class="placas-grid"></div>
+                </div>
+
+                <div id="olt-view-detalhes" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <button class="btn-voltar-placas" style="margin-bottom: 0;" onclick="backToOltPlacas()">
+                            <span class="material-symbols-rounded">arrow_back</span> Voltar para Placas
+                        </button>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-gerar-boletim-placa" class="btn-voltar-placas" style="margin-bottom: 0; padding: 10px;" onclick="window.gerarBoletimResumoPlacaOffscreen(event)" title="Gerar Boletim da Placa">
+                                <span class="material-symbols-rounded">assignment</span>
+                            </button>
+                            <button id="btn-export-placa-txt" class="btn-voltar-placas" style="margin-bottom: 0; padding: 10px;" onclick="window.exportPlacaToTXT()" title="Exportar Tabela para TXT">
+                                <span class="material-symbols-rounded">download</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="noc-table">
+                            <thead>
+                                <tr class="table-header-row">
+                                    <th>PORTAS</th>
+                                    <th>CIRCUITOS</th>
+                                    <th>BAIRROS</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="olt-detalhes-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
+    <script src="api-service.js"></script>
+    <script src="data-mapper.js"></script>
+    <script src="data-store.js"></script>
+    <script src="layout.js"></script>
+    <script src="notifications.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="olt-engine.js"></script>
+    <script src="olt-page.js"></script>
+    <script src="olt-relatorio.js"></script>
+    <script src="olt-comunicado.js"></script>
+    <script src="relatorio-pdf.js"></script>
+    <script src="boletim-gerencial.js"></script>
+</body>
+</html>

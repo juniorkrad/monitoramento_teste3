@@ -1,0 +1,288 @@
+/* ==========================================================================
+   notifications.css - Sistema Global de Alertas (Agrupamento por POP)
+   ========================================================================== */
+
+/* --- CONTAINERS DE NOTIFICAÇÕES (ESQUERDA E DIREITA) --- */
+#toast-container-left {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    pointer-events: none;
+}
+
+#toast-container-right {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 4000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   O MOLDE UNIVERSAL DO TOAST
+   ========================================================================== */
+.toast {
+    width: 400px; 
+    min-height: 88px; 
+    background-color: #252525;
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    pointer-events: auto;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    order: 0;
+}
+
+/* --- ANIMAÇÕES DE ENTRADA --- */
+.toast.slide-right { transform: translateX(120%); }
+.toast.slide-left { transform: translateX(-120%); }
+.toast.show { opacity: 1; transform: translateX(0); }
+
+/* --- ESTRUTURA INTERNA PADRÃO --- */
+.toast .toast-icon {
+    font-size: 40px; 
+    font-family: 'Material Symbols Rounded';
+    flex-shrink: 0;
+}
+
+.toast .toast-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.4;
+    overflow: hidden;
+    width: 100%;
+}
+
+.toast strong {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 19px; 
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #ffffff;
+    white-space: nowrap; 
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.toast .toast-content > span {
+    font-size: 16px; 
+    font-family: var(--font-family-mono);
+    color: #cccccc;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.toast .toast-content span.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded' !important;
+    vertical-align: middle;
+    color: inherit;
+    margin: 0 3px;
+}
+
+/* ==========================================================================
+   1. ALARME POP: ENERGIA MASSIVA (Esquerda)
+   ========================================================================== */
+.toast.pop-energia, .toast.hibrido-multiplo {
+    width: 550px;
+    min-height: 110px;
+    border-left: 12px solid #f59e0b; 
+    background-color: #3b2800; 
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4), 0 6px 20px rgba(0, 0, 0, 0.7);
+    animation: pulseEnergiaMulti 1.5s infinite;
+    z-index: 10;
+}
+
+.toast.pop-energia .toast-icon, .toast.hibrido-multiplo .toast-icon { 
+    font-size: 50px; 
+    color: #f59e0b; 
+    filter: drop-shadow(0 0 8px #f59e0b);
+}
+
+.toast.pop-energia strong, .toast.hibrido-multiplo strong { 
+    font-size: 22px; 
+    color: #f59e0b; 
+    text-shadow: 0 0 5px rgba(245, 158, 11, 0.6);
+    white-space: normal; 
+    overflow: visible;
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+
+.toast.pop-energia .toast-content > span, .toast.hibrido-multiplo .toast-content > span {
+    font-size: 16px; 
+    color: #ffedad;
+    white-space: normal; 
+    overflow: visible;
+    line-height: 1.5;
+}
+
+.toast.hibrido { 
+    width: 500px; 
+    min-height: 110px;
+    border-left: 8px solid #fbbf24; 
+    background-color: #2b2510; 
+}
+
+.toast.hibrido .toast-icon { 
+    font-size: 50px; 
+    color: #fbbf24; 
+}
+
+.toast.hibrido strong { 
+    font-size: 24px; 
+    color: #fbbf24; 
+    white-space: normal; 
+    overflow: visible;
+    line-height: 1.1;
+    margin-bottom: 5px;
+}
+
+.toast.hibrido .toast-content > span {
+    font-size: 16px; 
+    white-space: normal; 
+}
+
+/* ==========================================================================
+   2. ALARME POP: BACKBONE L2 (Direita) - Aumentado em 30% (650px)
+   ========================================================================== */
+.toast.pop-backbone, .toast.backbone-l2 {
+    width: 650px;
+    min-height: 110px;
+    border: 2px solid #ff0000;
+    border-left: 8px solid #ff0000;
+    background-color: #1a0000;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.6), 0 6px 20px rgba(0, 0, 0, 0.8);
+    animation: flashBackgroundL2 1s infinite;
+    order: -2; 
+    z-index: 10;
+}
+
+.toast.pop-backbone .toast-icon, .toast.backbone-l2 .toast-icon { 
+    font-size: 50px; 
+    color: #ff0000; 
+    filter: drop-shadow(0 0 5px #ff0000);
+    animation: shakeIconL2 0.3s infinite;
+}
+
+.toast.pop-backbone strong, .toast.backbone-l2 strong { 
+    font-size: 21px; 
+    color: #ff0000; 
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+    white-space: normal; 
+    overflow: visible;
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+
+.toast.pop-backbone .toast-content > span, .toast.backbone-l2 .toast-content > span {
+    font-size: 16px; 
+    color: #ffcccc; 
+    text-shadow: 0 1px 2px #000;
+    white-space: normal; 
+    overflow: visible;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   3. ALARME INDIVIDUAL: BACKBONE L1 E CIRCUITO (Direita)
+   ========================================================================== */
+.toast.backbone-l1 { 
+    width: 440px; 
+    min-height: 96px; 
+    border-left: 6px solid #FF1744; 
+    background-color: #1a0000; 
+    animation: pulseCritical 1.5s infinite; 
+    order: -1; 
+}
+
+.toast.backbone-l1 .toast-icon { 
+    font-size: 44px; 
+    color: #FF1744; 
+    animation: shakeIcon 0.5s infinite; 
+}
+
+.toast.backbone-l1 strong { 
+    font-size: 21px; 
+    color: #FF1744; 
+    text-transform: none; 
+}
+
+.toast.backbone-l1 .toast-content > span { font-size: 17.5px; } 
+
+/* ==========================================================================
+   4. CORES DE STATUS PADRÃO (NORMALIZAÇÃO) E LEGADO (SILENCIADOS)
+   ========================================================================== */
+.toast.status-normal { border-left: 6px solid var(--m3-color-success); }
+.toast.status-normal .toast-icon { color: var(--m3-color-success); }
+
+/* Classes legadas mantidas para garantir compatibilidade caso sejam acionadas */
+.toast.rede-warn { border-left: 6px solid var(--m3-color-warning); }
+.toast.rede-warn .toast-icon { color: var(--m3-color-warning); }
+
+.toast.rede-problem { 
+    border-left: 6px solid #e65100; 
+    height: auto; 
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+.toast.rede-problem .toast-icon { color: #e65100; }
+.toast.rede-problem .toast-content > span { white-space: normal; overflow: visible; line-height: 1.6; margin-top: 6px; }
+
+/* ==========================================================================
+   ANIMAÇÕES EXCLUSIVAS
+   ========================================================================== */
+@keyframes pulseEnergiaMulti {
+    0% { box-shadow: 0 0 0 rgba(245, 158, 11, 0), 0 6px 20px rgba(0, 0, 0, 0.6); }
+    50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6), 0 6px 20px rgba(0, 0, 0, 0.8); }
+    100% { box-shadow: 0 0 0 rgba(245, 158, 11, 0), 0 6px 20px rgba(0, 0, 0, 0.6); }
+}
+
+@keyframes pulseCritical {
+    0% { box-shadow: 0 0 0 rgba(255, 23, 68, 0), 0 6px 20px rgba(0, 0, 0, 0.6); }
+    50% { box-shadow: 0 0 20px rgba(255, 23, 68, 0.5), 0 6px 20px rgba(0, 0, 0, 0.6); }
+    100% { box-shadow: 0 0 0 rgba(255, 23, 68, 0), 0 6px 20px rgba(0, 0, 0, 0.6); }
+}
+
+@keyframes shakeIcon {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
+}
+
+@keyframes flashBackgroundL2 {
+    0%, 100% { background: linear-gradient(135deg, #1a0000 0%, #000000 100%); }
+    50% { background: linear-gradient(135deg, #4d0000 0%, #1a0000 100%); }
+}
+
+@keyframes shakeIconL2 {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(8deg) scale(1.1); }
+    75% { transform: rotate(-8deg) scale(1.1); }
+}
+
+/* RESPONSIVIDADE (Mobile) */
+@media (max-width: 768px) {
+    #toast-container-left, #toast-container-right { left: 10px; right: 10px; top: 10px; align-items: center; }
+    .toast { width: 100%; max-width: 380px; }
+    .toast.pop-energia, .toast.pop-backbone, .toast.backbone-l2, .toast.hibrido-multiplo, .toast.hibrido, .toast.backbone-l1 { max-width: 95vw; } 
+    .toast.slide-left, .toast.slide-right { transform: translateY(-120%); }
+    .toast.show { transform: translateY(0); }
+}

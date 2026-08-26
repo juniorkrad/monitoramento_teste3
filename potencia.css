@@ -1,0 +1,16 @@
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS - PAINEL DE POTÊNCIA ÓPTICA (potencia.css)
+   ========================================================================== */
+
+/* Aviso: Estruturas de modais e cabeçalhos fixos de tabela (.noc-table)
+   foram centralizados no styles.css global. */
+
+/* DESTAQUE SUTIL PARA CLIENTES COM SINAL CRÍTICO */
+.bg-alerta-sinal { 
+    background-color: rgba(248, 113, 113, 0.12) !important; 
+    transition: background-color 0.3s ease;
+}
+
+.bg-alerta-sinal:hover {
+    background-color: rgba(248, 113, 113, 0.2) !important;
+}
